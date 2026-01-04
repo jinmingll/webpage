@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 我的私人空间</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="/login">登录</a>
+            <a href="/register">注册</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 style="text-align: center; margin: 30px 0; color: #a8d8ff; text-shadow: 0 0 10px #a8d8ff;">注册私人空间账号</h1>
+        <div class="card" style="max-width: 400px; margin: 0 auto;">
+            {% if error %}
+            <p style="color: #ff6b6b; text-align: center; margin-bottom: 15px;">{{ error }}</p>
+            {% endif %}
+            <form method="POST">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" name="password" required>
+                </div>
+                <button type="submit" style="width: 100%;">注册</button>
+            </form>
+            <p style="text-align: center; margin-top: 15px; color: #ccc;">
+                已有账号？<a href="/login" style="color: #ff99cc;">点击登录</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

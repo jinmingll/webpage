@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理 - 我的小站</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="/">首页</a>
+            <a href="/post">发布日志</a>
+            <a href="/trash">情绪垃圾桶</a>
+            <a href="/admin">后台管理</a>
+            <span style="color: #ff99cc; margin-left: 20px;">欢迎，{{ username }}</span>
+            <a href="/logout" style="color: #ff6b6b; margin-left: 10px;">退出</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 style="text-align: center; margin: 20px 0; color: #a8d8ff; text-shadow: 0 0 10px #a8d8ff;">极简后台管理</h1>
+        
+        <!-- 日志/月记管理 -->
+        <h2 style="color: #ff99cc; margin: 20px 0;">📝 日志/月记管理（共{{ posts|length }}条）</h2>
+        {% if posts %}
+            {% for post in posts %}
+            <div class="card">
+                <h3 style="color: #a8d8ff;">{{ post.title }}</h3>
+                <div class="meta">发布时间：{{ post.time }} | 标签：{{ post.tag }}</div>
+                <!-- 查看详情按钮 -->
+                <button onclick="togglePostDetail('post-{{ post.id }}')" style="margin: 10px 0;">{{ '收起详情' if loop.first else '查看详情' }}</button>
+                <a href="/delete/post/{{ post.id }}" onclick="return confirm('确定删除这篇日志？')" style="margin-left: 10px; color: #ff6b6b;">删除</a>
+                
+                <!-- 日志详情（默认隐藏） -->
+                <div id="post-{{ post.id }}" class="post-detail" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(120, 219, 255, 0.2);">
+                    <h4>完整内容：</h4>
+                    <p>{{ post.content }}</p>
+                    
+                    <!-- 日志图片 -->
+                    {% if post.img_url %}
+                    <div style="margin: 10px 0;">
+                        <h4>图片：</h4>
+                        <img src="{{ post.img_url }}" class="post-img" style="max-width: 300px;" alt="日志图片">
+                    </div>
+                    {% endif %}
+                    
+                    <!-- 视频链接 -->
+                    {% if post.video_url %}
+                    <div style="margin: 10px 0;">
+                        <h4>视频链接：</h4>
+                        <a href="{{ post.video_url }}" target="_blank" style="color: #78d1ff;">{{ post.video_url }}</a>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- 留言列表 -->
+                    <div style="margin: 10px 0;">
+                        <h4>留言（共{{ post.comments|length }}条）：</h4>
+                        {% if post.comments %}
+                            {% for comment in post.comments %}
+                            <div style="padding: 8px; background: rgba(0,0,0,0.3); border-radius: 4px; margin: 5px 0;">
+                                <span style="color: #ff99cc;">{{ comment.name }}</span>（{{ comment.time }}）：
+                                <p>{{ comment.content }}</p>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p style="color: #ccc;">暂无留言</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="card"><p style="color: #ccc;">暂无日志内容</p></div>
+        {% endif %}
+
+        <!-- 情绪垃圾桶管理（仅管理员可见，添加隐私提示） -->
+        <h2 style="color: #ff99cc; margin: 40px 0 20px 0;">🗑️ 情绪垃圾桶管理（共{{ trashes|length }}条）</h2>
+        <div class="card" style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); margin-bottom: 20px;">
+            <p style="color: #ff6b6b;">⚠️ 隐私提示：垃圾桶内容为用户私密信息，仅用于管理删除，请勿泄露！</p>
+        </div>
+        {% if trashes %}
+            {% for trash in trashes %}
+            <div class="card">
+                <div class="meta">提交时间：{{ trash.time }} | 匿名：{{ '是' if trash.uuid != 'non-anon' else '否' }}</div>
+                <!-- 查看垃圾桶详情按钮 -->
+                <button onclick="toggleTrashDetail('trash-{{ trash.id }}')" style="margin: 10px 0;">{{ '收起详情' if loop.first else '查看详情' }}</button>
+                <a href="/delete/trash/{{ trash.id }}" onclick="return confirm('确定删除这条垃圾桶记录？')" style="margin-left: 10px; color: #ff6b6b;">删除</a>
+                
+                <!-- 垃圾桶详情（默认隐藏） -->
+                <div id="trash-{{ trash.id }}" class="trash-detail" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(120, 219, 255, 0.2);">
+                    <h4>提交内容：</h4>
+                    <p>{{ trash.content }}</p>
+                    
+                    <!-- 垃圾桶图片 -->
+                    {% if trash.img_url %}
+                    <div style="margin: 10px 0;">
+                        <h4>上传图片：</h4>
+                        <img src="{{ trash.img_url }}" class="post-img" style="max-width: 300px;" alt="垃圾桶图片">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="card"><p style="color: #ccc;">暂无垃圾桶内容</p></div>
+        {% endif %}
+    </div>
+
+    <!-- 控制详情显示/隐藏的JS -->
+    <script>
+        // 切换日志详情显示/隐藏
+        function togglePostDetail(id) {
+            const detail = document.getElementById(id);
+            if (detail.style.display === 'none') {
+                // 隐藏其他所有日志详情
+                document.querySelectorAll('.post-detail').forEach(item => {
+                    item.style.display = 'none';
+                });
+                detail.style.display = 'block';
+            } else {
+                detail.style.display = 'none';
+            }
+        }
+
+        // 切换垃圾桶详情显示/隐藏
+        function toggleTrashDetail(id) {
+            const detail = document.getElementById(id);
+            if (detail.style.display === 'none') {
+                // 隐藏其他所有垃圾桶详情
+                document.querySelectorAll('.trash-detail').forEach(item => {
+                    item.style.display = 'none';
+                });
+                detail.style.display = 'block';
+            } else {
+                detail.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情绪垃圾桶 - 我的小站</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="/">首页</a>
+            <a href="/post">发布日志</a>
+            <a href="/trash">情绪垃圾桶</a>
+            <a href="/admin">后台管理</a>
+            <span style="color: #ff99cc; margin-left: 20px;">欢迎，{{ username }}</span>
+            <a href="/logout" style="color: #ff6b6b; margin-left: 10px;">退出</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 style="text-align: center; margin: 20px 0; color: #a8d8ff; text-shadow: 0 0 10px #a8d8ff;">情绪垃圾桶 🗑️</h1>
+        <div class="card">
+            <p style="color: #ccc;">把不开心的话/事扔进来吧，仅你可见～</p>
+            
+            <!-- 彩蛋：小行星验证码 -->
+            <div class="form-group">
+                <label>小行星验证码（输入下方数字）：<span id="true_verify_code" style="color: #ff99cc;">{{ verify_code }}</span></label>
+                <input type="text" id="verify_code" placeholder="输入验证码">
+            </div>
+
+            <!-- 关键：保留onsubmit="return false;"，确保ID正确 -->
+            <form id="trash_form" method="POST" enctype="multipart/form-data" onsubmit="return false;">
+                <div class="form-group">
+                    <label>要扔掉的“垃圾”</label>
+                    <textarea id="trash_content" name="trash_content" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>上传图片（可选）</label>
+                    <!-- 关键：ID必须是trash_img，和JS对应 -->
+                    <input type="file" id="trash_img" name="trash_img" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <!-- 关键：ID必须是anonymous，和JS对应 -->
+                    <label>
+                        <input type="checkbox" id="anonymous" name="anonymous" checked> 匿名提交
+                    </label>
+                </div>
+                <!-- 动画容器：ID必须正确 -->
+                <div class="trash-container">
+                    <div id="trash-content" style="display: none;"></div>
+                    <div id="trash-can">🗑️</div>
+                </div>
+                <!-- 关键：按钮ID必须是submit_trash_btn，且绑定onclick事件（兜底） -->
+                <button type="button" id="submit_trash_btn" onclick="submitTrash()">扔进垃圾桶</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 关键：JS移到页面底部，确保DOM加载完成后执行 -->
+    <script>
+        // 情绪垃圾桶提交动画 + 异步提交数据
+        function submitTrash() {
+            // 1. 强制打印日志，排查是否进入函数
+            console.log("点击了按钮！开始执行提交逻辑");
+
+            // 2. 获取所有DOM元素（加容错）
+            const inputCode = document.getElementById('verify_code')?.value || '';
+            const trueCode = document.getElementById('true_verify_code')?.innerText || '';
+            const content = document.getElementById('trash_content')?.value || '';
+            const trashImg = document.getElementById('trash_img');
+            const isAnonymous = document.getElementById('anonymous')?.checked || true;
+            const trashContent = document.getElementById('trash-content');
+            const trashCan = document.getElementById('trash-can');
+
+            // 3. 校验元素是否获取到
+            if (!trashContent || !trashCan) {
+                alert('页面元素加载失败！刷新重试');
+                return;
+            }
+
+            // 4. 验证验证码
+            if (inputCode !== trueCode) {
+                alert('验证码错误～小行星没进轨道哦！');
+                return;
+            }
+
+            // 5. 验证内容
+            if (!content) {
+                alert('请输入要扔掉的“垃圾”～');
+                return;
+            }
+
+            // 随机暖心回复
+            const warmReplies = [
+                "垃圾已经扔掉啦～✨ 坏心情也一起飞走了",
+                "垃圾桶已收到你的烦恼，现在清空啦😘",
+                "不开心的事都丢进黑洞啦，剩下的都是快乐～",
+                "烦恼回收成功！奖励自己一个甜甜的微笑😊",
+                "情绪垃圾已处理，今天也要元气满满哦💪"
+            ];
+            const randomReply = warmReplies[Math.floor(Math.random() * warmReplies.length)];
+
+            // 设置动画内容
+            trashContent.innerText = content;
+            trashContent.style.display = 'block';
+
+            // 动画逻辑
+            let x = trashContent.offsetLeft;
+            let y = trashContent.offsetTop;
+            const targetX = trashCan.offsetLeft + trashCan.offsetWidth/2 - trashContent.offsetWidth/2;
+            const targetY = trashCan.offsetTop - trashContent.offsetHeight;
+
+            const timer = setInterval(() => {
+                x += (targetX - x) / 10;
+                y += (targetY - y) / 10;
+                trashContent.style.left = x + 'px';
+                trashContent.style.top = y + 'px';
+                trashContent.style.opacity = parseFloat(trashContent.style.opacity || 1) - 0.05;
+                trashContent.style.transform = `scale(${parseFloat(trashContent.style.transform?.replace('scale(', '') || 1) - 0.05})`;
+
+                if (Math.abs(x - targetX) < 5 && Math.abs(y - targetY) < 5) {
+                    clearInterval(timer);
+                    trashContent.style.display = 'none';
+                    // 垃圾桶晃动
+                    trashCan.style.transform = 'rotate(5deg)';
+                    setTimeout(() => {
+                        trashCan.style.transform = 'rotate(-5deg)';
+                        setTimeout(() => {
+                            trashCan.style.transform = 'rotate(0)';
+                            // 异步提交数据
+                            submitTrashData(content, trashImg, isAnonymous, randomReply);
+                            // 重置表单
+                            document.getElementById('trash_form').reset();
+                        }, 100);
+                    }, 100);
+                }
+            }, 30);
+        }
+
+        // 异步提交数据
+        function submitTrashData(content, imgFile, isAnonymous, reply) {
+            const formData = new FormData();
+            formData.append('trash_content', content);
+            formData.append('anonymous', isAnonymous);
+            if (imgFile && imgFile.files && imgFile.files.length > 0) {
+                formData.append('trash_img', imgFile.files[0]);
+            }
+
+            // 发送AJAX
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/trash', true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    if (confirm(`${reply}\n\n点击“确定”返回首页～`)) {
+                        window.location.href = '/';
+                    }
+                } else {
+                    alert('提交失败啦😥，再试一次吧！');
+                }
+            };
+            xhr.onerror = function() {
+                alert('网络出错了～检查一下再试吧！');
+            };
+            xhr.send(formData);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发布日志 - 我的小站</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="/">首页</a>
+            <a href="/post">发布日志</a>
+            <a href="/trash">情绪垃圾桶</a>
+            <a href="/admin">后台管理</a>
+            <span style="color: #ff99cc; margin-left: 20px;">欢迎，{{ username }}</span>
+            <a href="/logout" style="color: #ff6b6b; margin-left: 10px;">退出</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 style="text-align: center; margin: 20px 0;">发布月记/日志</h1>
+        <div class="card">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>标题</label>
+                    <input type="text" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label>内容</label>
+                    <textarea name="content" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>分类标签（如：生活/创作）</label>
+                    <input type="text" name="tag" required>
+                </div>
+                <div class="form-group">
+                    <label>上传图片</label>
+                    <input type="file" name="img" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>视频链接（简化版：输入视频URL）</label>
+                    <input type="text" name="video_url" placeholder="如：https://xxx.mp4">
+                </div>
+                <button type="submit">发布</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

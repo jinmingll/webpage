@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的小站 - 月记/日志</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav>
+        <div class="container">
+            <a href="/">首页</a>
+            <a href="/post">发布日志</a>
+            <a href="/trash">情绪垃圾桶</a>
+            <a href="/admin">后台管理</a>
+            <span style="color: #ff99cc; margin-left: 20px;">欢迎，{{ username }}</span>
+            <a href="/logout" style="color: #ff6b6b; margin-left: 10px;">退出</a>
+        </div>
+    </nav>
+
+    <!-- 彩蛋 -->
+    {% if egg %}
+    <div class="egg container">{{ egg }}</div>
+    {% endif %}
+
+    <!-- 主体内容 -->
+    <div class="container">
+        <h1 style="text-align: center; margin: 20px 0; color: #a8d8ff; text-shadow: 0 0 10px #a8d8ff;">我的月记/日志</h1>
+        
+        <!-- 书架容器 -->
+        <div class="bookshelf">
+            <h2 style="color: #fff; margin-bottom: 20px; text-align: center;">我的日志书架 📚</h2>
+            {% if posts %}
+                {% for post in posts %}
+                <div class="book-card">
+                    <h2>{{ post.title }}</h2>
+                    <div class="meta">
+                        标签：{{ post.tag }} | {{ post.time }}
+                    </div>
+                    <div class="content-preview">{{ post.content[:80] }}...</div>
+                    <a href="#post-{{ post.id }}" class="read-more">展开阅读</a>
+                </div>
+
+                <!-- 展开的日志详情（默认隐藏，点击显示） -->
+                <div id="post-{{ post.id }}" class="card" style="display: none; margin-top: 20px;">
+                    <h2>{{ post.title }}</h2>
+                    <div class="meta">
+                        标签：{{ post.tag }} | 发布时间：{{ post.time }}
+                    </div>
+                    <p>{{ post.content }}</p>
+                    
+                    {% if post.img_url %}
+                    <img src="{{ post.img_url }}" class="post-img" alt="日志图片">
+                    {% endif %}
+                    
+                    {% if post.video_url %}
+                    <div class="form-group">
+                        <a href="{{ post.video_url }}" target="_blank" style="color: #ff99cc;">查看视频</a>
+                        <a href="{{ post.video_url }}" download style="color: #ff99cc; margin-left: 10px;">下载视频</a>
+                    </div>
+                    {% endif %}
+
+                    <!-- 留言区 -->
+                    <div class="comments">
+                        <h3>留言</h3>
+                        {% for comment in post.comments %}
+                        <div class="comment-item">
+                            <span class="name">{{ comment.name }}</span>
+                            <span class="time">{{ comment.time }}</span>
+                            <p>{{ comment.content }}</p>
+                        </div>
+                        {% endfor %}
+
+                        <form action="/add_comment/{{ post.id }}" method="POST">
+                            <div class="form-group">
+                                <label>你的名字</label>
+                                <input type="text" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>留言内容</label>
+                                <textarea name="comment" required></textarea>
+                            </div>
+                            <button type="submit">提交留言</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: #fff; text-align: center; font-size: 16px;">书架空空如也，快去发布第一篇日志吧～</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 点击展开日志的JS -->
+    <script>
+        // 给所有“展开阅读”绑定点击事件
+        document.querySelectorAll('.read-more').forEach(link => {
+            link.onclick = function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').slice(1);
+                // 隐藏所有展开的日志
+                document.querySelectorAll('.card[id^="post-"]').forEach(card => {
+                    card.style.display = 'none';
+                });
+                // 显示当前点击的日志
+                document.getElementById(targetId).style.display = 'block';
+                // 滚动到日志位置
+                document.getElementById(targetId).scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // 星空彩蛋：点击页面生成星星
+        document.addEventListener('click', (e) => {
+            const star = document.createElement('div');
+            star.style.position = 'absolute';
+            star.style.left = e.clientX + 'px';
+            star.style.top = e.clientY + 'px';
+            star.style.width = '10px';
+            star.style.height = '10px';
+            star.style.background = '#fff';
+            star.style.borderRadius = '50%';
+            star.style.boxShadow = '0 0 10px #fff';
+            star.style.pointerEvents = 'none';
+            star.style.animation = 'starFade 1s ease-out';
+            document.body.appendChild(star);
+            setTimeout(() => star.remove(), 1000);
+        });
+
+        // 星星消失动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes starFade {
+                0% { opacity: 1; transform: scale(1); }
+                100% { opacity: 0; transform: scale(0); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
